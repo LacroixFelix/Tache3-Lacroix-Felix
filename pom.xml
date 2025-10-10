@@ -155,6 +155,13 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- javafaker -->
+        <dependency>
+            <groupId>com.github.javafaker</groupId>
+            <artifactId>javafaker</artifactId>
+            <version>1.0.2</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
@@ -307,6 +314,55 @@
 
     <!-- mvn clean deploy -P release -->
     <profiles>
+
+        <!-- pitest -->
+
+        <profile>
+            <id>pitest</id>
+            <!-- config -->
+            <build>
+                <plugins>
+                <plugin>
+                    <groupId>org.pitest</groupId>
+                    <artifactId>pitest-maven</artifactId>
+                    <!-- version 7 oct 2025 -->
+                    <version>1.20.6</version>
+                    <configuration>
+                    <targetClasses>
+                        <param>com.graphhopper.routing.DirectionResolverResult</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>com.graphhopper.*</param>
+                    </targetTests>
+                    <reportsDirectory>${project.build.directory}/reports</reportsDirectory>
+                    <timestampedReports>false</timestampedReports>
+                    <threads>1</threads>
+                    <failWhenNoMutations>false</failWhenNoMutations>
+                    <useClasspathJar>true</useClasspathJar>
+                    <parseSurefireArgLine>false</parseSurefireArgLine>
+                    </configuration>
+                    <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.3</version>
+                    </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                    <argLine></argLine>
+                    <parallel>none</parallel>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    </configuration>
+                </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>release</id>
             <activation>
