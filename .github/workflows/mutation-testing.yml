@@ -1,0 +1,46 @@
+name: Mutation Testing Quality Gate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  mutation-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    
+    - name: Run Mutation Tests
+      run: mvn org.pitest:pitest-maven:mutationCoverage
+    
+    - name: Extract and Compare Scores
+      run: |
+        CURRENT=$(grep -oP 'Line Coverage: \K[0-9]+' target/pit-reports/*/index.html | head -1 || echo "0")
+        BASELINE=$(cat .baseline-mutation-score 2>/dev/null || echo "0")
+        
+        echo "Current: $CURRENT%, Baseline: $BASELINE%"
+        
+        if [ "$CURRENT" -lt "$BASELINE" ]; then
+          echo "FAILED=true" >> $GITHUB_ENV
+          exit 1
+        fi
+    
+    - name: Rickroll on Failure
+      if: failure()
+      run: |
+        echo "🎵 YOU'VE BEEN RICKROLLED! 🎵"
+        echo "Watch: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        if command -v xdg-open &> /dev/null; then
+          xdg-open "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 2>/dev/null || true
+        elif command -v open &> /dev/null; then
+          open "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 2>/dev/null || true
+        fi
