@@ -26,7 +26,7 @@ jobs:
       continue-on-error: true 
 
     - name: Run Mutation Tests
-      run: mvn org.pitest:pitest-maven:mutationCoverage
+      run: mvn -pl core org.pitest:pitest-maven:mutationCoverage -DtargetClasses=com.graphhopper.* -DtargetTests=com.graphhopper.*
 
     - name: Check Mutation Score
       id: check_score
