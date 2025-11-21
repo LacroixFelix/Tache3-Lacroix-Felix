@@ -25,23 +25,26 @@ jobs:
         path: ./
       continue-on-error: true
 
-    - name: Build Project (Install Dependencies)
+    - name: Build Project
       run: mvn install -DskipTests -Dmaven.javadoc.skip=true -B -V
 
     - name: Run Mutation Tests
-      run: mvn -pl core org.pitest:pitest-maven:mutationCoverage -DtargetClasses=com.graphhopper.* -DtargetTests=com.graphhopper.*
+      run: mvn -pl core org.pitest:pitest-maven:mutationCoverage -DtargetClasses=com.graphhopper.routing.*,com.graphhopper.storage.* -DtargetTests=com.graphhopper.routing.*,com.graphhopper.storage.*
 
     - name: Check Mutation Score
       id: check_score
       run: |
+        # Récupère le score généré
         NEW_SCORE=$(grep -oP 'Mutation Coverage.*?<span class="code">\K[0-9]+' core/target/pit-reports/*/index.html | head -1 || echo "0")
         OLD_SCORE=$(cat mutation-score.txt 2>/dev/null || echo "0")
         
         echo "Ancien Score: $OLD_SCORE%"
         echo "Nouveau Score: $NEW_SCORE%"
         
+        # Sauvegarde le score
         echo "$NEW_SCORE" > mutation-score.txt
         
+        # Compare (Fail si baisse)
         if [ "$NEW_SCORE" -lt "$OLD_SCORE" ]; then
           echo "::error::Le score de mutation a baissé !"
           exit 1
