@@ -1,5 +1,4 @@
 name: Mutation Testing Quality Gate
-
 on:
   push:
     branches: [ main, master ]
@@ -16,31 +15,47 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
-    
+
+    - name: Download previous benchmark
+      uses: actions/download-artifact@v3
+      with:
+        name: mutation-score
+        path: ./
+      continue-on-error: true
+
     - name: Run Mutation Tests
       run: mvn org.pitest:pitest-maven:mutationCoverage
-    
-    - name: Extract and Compare Scores
+
+    - name: Check Mutation Score
+      id: check_score
       run: |
-        CURRENT=$(grep -oP 'Line Coverage: \K[0-9]+' target/pit-reports/*/index.html | head -1 || echo "0")
-        BASELINE=$(cat .baseline-mutation-score 2>/dev/null || echo "0")
+        # Chercher "Mutation Coverage" dans le rapport HTML
+        # Note: Ajustez le chemin si votre rapport est ailleurs
+        NEW_SCORE=$(grep -oP 'Mutation Coverage.*?<span class="code">\K[0-9]+' target/pit-reports/*/index.html | head -1 || echo "0")
         
-        echo "Current: $CURRENT%, Baseline: $BASELINE%"
+        # Lire l'ancien score (0 si fichier inexistant)
+        OLD_SCORE=$(cat mutation-score.txt 2>/dev/null || echo "0")
         
-        if [ "$CURRENT" -lt "$BASELINE" ]; then
-          echo "FAILED=true" >> $GITHUB_ENV
+        echo "Ancien Score: $OLD_SCORE%"
+        echo "Nouveau Score: $NEW_SCORE%"
+        
+        # Sauvegarder le nouveau score pour le futur
+        echo "$NEW_SCORE" > mutation-score.txt
+        
+        if [ "$NEW_SCORE" -lt "$OLD_SCORE" ]; then
+          echo "::error::Le score de mutation a baissé !"
           exit 1
         fi
-    
-    - name: Rickroll on failure
+
+    - name: Save new benchmark
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: mutation-score
+        path: mutation-score.txt
+
+    - name: Rickroll on Failure
       if: failure()
-      run: |
-        echo "🎵 YOU'VE BEEN RICKROLLED! 🎵"
-        echo "Watch: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-        if command -v xdg-open &> /dev/null; then
-          xdg-open "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 2>/dev/null || true
-        elif command -v open &> /dev/null; then
-          open "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 2>/dev/null || true
-        fi
+      uses: ./.github/actions/rickroll

@@ -160,6 +160,18 @@
 
         <plugins>
             <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.15.3</version> <configuration>
+                    <targetClasses>
+                        <param>com.graphhopper.*</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>com.graphhopper.*</param>
+                    </targetTests>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
                 <executions>

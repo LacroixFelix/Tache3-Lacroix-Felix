@@ -1,0 +1,13 @@
+name: 'Console Rickroll'
+description: 'Affiche les paroles de Rick Astley dans les logs en cas erreur'
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        echo "❌ BUILD FAILED! PREPARE FOR RICKROLL..."
+        echo "🎵 Never gonna give you up"
+        echo "🎵 Never gonna let you down"
+        echo "🎵 Never gonna run around and desert you"
+        echo "🔗 Lien vers la vidéo: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        # Pas de xdg-open car impossible sur un serveur CI
+      shell: bash
